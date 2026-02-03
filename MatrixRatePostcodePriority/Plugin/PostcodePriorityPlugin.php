@@ -72,17 +72,21 @@ class PostcodePriorityPlugin
      *
      * Examples:
      * - "*" = 0 (matches everything)
+     * - "%" = 0 (matches everything)
      * - "N%" = 1 (one specific character)
      * - "NP%" = 2 (two specific characters)
      * - "NP10%" = 4 (four specific characters)
-     * - "NP10 1AA" = 108 (exact match, highest specificity)
+     * - "NP10 1AA" = 108 (exact match, highest priority)
      *
      * @param string $postcodePattern
      * @return int
      */
     private function calculatePostcodeSpecificity(string $postcodePattern): int
     {
-        if ($postcodePattern === '*') {
+        $postcodePattern = trim($postcodePattern);
+
+        // Wildcards that match everything = lowest specificity
+        if ($postcodePattern === '*' || $postcodePattern === '%' || $postcodePattern === '') {
             return 0;
         }
 
@@ -92,14 +96,21 @@ class PostcodePriorityPlugin
         for ($i = 0; $i < $patternLength; $i++) {
             $char = $postcodePattern[$i];
 
-            if ($char === '%' || $char === '_') {
+            if ($char === '%' || $char === '_' || $char === '*') {
                 break;
             }
 
             $specificChars++;
         }
 
-        $hasWildcard = strpos($postcodePattern, '%') !== false || strpos($postcodePattern, '_') !== false;
+        // If pattern is ONLY wildcards, specificity is 0
+        if ($specificChars === 0) {
+            return 0;
+        }
+
+        $hasWildcard = strpos($postcodePattern, '%') !== false
+            || strpos($postcodePattern, '_') !== false
+            || strpos($postcodePattern, '*') !== false;
 
         if (!$hasWildcard) {
             $specificChars += 100;
