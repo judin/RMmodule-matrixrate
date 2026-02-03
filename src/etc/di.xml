@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * WebShopApps MatrixRate
+ *
+ * Plugin configuration for postcode priority sorting.
+ * This plugin ensures more specific postcode patterns take priority over less specific ones.
+ * For example, NP% will be prioritized over N% when matching a postcode starting with NP.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="WebShopApps\MatrixRate\Model\ResourceModel\Carrier\Matrixrate">
+        <plugin name="webshopapps_matrixrate_postcode_priority"
+                type="WebShopApps\MatrixRate\Plugin\PostcodePriorityPlugin"
+                sortOrder="10"/>
+    </type>
+</config>
