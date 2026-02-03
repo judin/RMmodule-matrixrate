@@ -63,11 +63,40 @@ This extension filters the results so that only the **most specific matching pat
 
 1. Copy the `MatrixRatePostcodePriority` folder to `app/code/WebShopApps/MatrixRatePostcodePriority/`
 
-2. Enable the module:
+2. Enable the module and compile:
 ```bash
 bin/magento module:enable WebShopApps_MatrixRatePostcodePriority
 bin/magento setup:upgrade
-bin/magento cache:clean
+bin/magento setup:di:compile
+bin/magento cache:flush
+```
+
+## Troubleshooting
+
+If the plugin is not working:
+
+1. Verify the module is enabled:
+```bash
+bin/magento module:status WebShopApps_MatrixRatePostcodePriority
+```
+
+2. Check the folder structure is correct:
+```
+app/code/WebShopApps/MatrixRatePostcodePriority/
+├── registration.php
+├── composer.json
+├── etc/
+│   ├── module.xml
+│   └── di.xml
+└── Plugin/
+    └── PostcodePriorityPlugin.php
+```
+
+3. Re-compile and flush all caches:
+```bash
+rm -rf generated/code/*
+bin/magento setup:di:compile
+bin/magento cache:flush
 ```
 
 ## How It Works
