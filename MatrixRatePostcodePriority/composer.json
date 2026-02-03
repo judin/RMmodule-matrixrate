@@ -1,0 +1,19 @@
+{
+    "name": "webshopapps/module-matrixrate-postcode-priority",
+    "description": "Ensures more specific postcode patterns take priority over less specific ones in MatrixRate",
+    "type": "magento2-module",
+    "license": "OSL-3.0",
+    "require": {
+        "php": ">=8.1",
+        "magento/framework": ">=103.0.0",
+        "webshopapps/module-matrixrate": ">=20.0.0"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "WebShopApps\\MatrixRatePostcodePriority\\": ""
+        }
+    }
+}
