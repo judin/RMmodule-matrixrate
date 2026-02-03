@@ -40,17 +40,6 @@ This extension intercepts the rate lookup and sorts results by **postcode specif
 
 ## Installation
 
-### Via Composer
-
-```bash
-composer require webshopapps/module-matrixrate-postcode-priority
-bin/magento module:enable WebShopApps_MatrixRatePostcodePriority
-bin/magento setup:upgrade
-bin/magento cache:clean
-```
-
-### Manual Installation
-
 1. Copy the `MatrixRatePostcodePriority` folder to `app/code/WebShopApps/MatrixRatePostcodePriority/`
 
 2. Enable the module:
