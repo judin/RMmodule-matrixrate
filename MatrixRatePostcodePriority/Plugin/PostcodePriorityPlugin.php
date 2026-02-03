@@ -24,8 +24,8 @@ class PostcodePriorityPlugin
     /**
      * After plugin for getRate method to filter results by postcode specificity.
      *
-     * For each shipping method, only the rate with the most specific postcode
-     * pattern is kept. Less specific matches (like *) are filtered out.
+     * Only rates with the most specific postcode pattern are kept.
+     * All less specific matches (like *) are filtered out.
      *
      * @param Matrixrate $subject
      * @param array $result
@@ -43,31 +43,22 @@ class PostcodePriorityPlugin
             return $result;
         }
 
-        // Group rates by shipping method and keep only the most specific postcode match
-        $ratesByMethod = [];
-
+        // Find the highest specificity among all rates
+        $highestSpecificity = 0;
         foreach ($result as $rate) {
-            $method = $rate['shipping_method'] ?? '';
             $specificity = $this->calculatePostcodeSpecificity($rate['dest_zip'] ?? '*');
-
-            if (!isset($ratesByMethod[$method])) {
-                $ratesByMethod[$method] = [
-                    'rate' => $rate,
-                    'specificity' => $specificity
-                ];
-            } elseif ($specificity > $ratesByMethod[$method]['specificity']) {
-                // More specific postcode pattern found - replace
-                $ratesByMethod[$method] = [
-                    'rate' => $rate,
-                    'specificity' => $specificity
-                ];
+            if ($specificity > $highestSpecificity) {
+                $highestSpecificity = $specificity;
             }
         }
 
-        // Extract just the rates
+        // Only keep rates with the highest specificity
         $filteredRates = [];
-        foreach ($ratesByMethod as $data) {
-            $filteredRates[] = $data['rate'];
+        foreach ($result as $rate) {
+            $specificity = $this->calculatePostcodeSpecificity($rate['dest_zip'] ?? '*');
+            if ($specificity === $highestSpecificity) {
+                $filteredRates[] = $rate;
+            }
         }
 
         return $filteredRates;
