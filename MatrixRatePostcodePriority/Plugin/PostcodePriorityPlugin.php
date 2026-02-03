@@ -22,7 +22,10 @@ use Magento\Quote\Model\Quote\Address\RateRequest;
 class PostcodePriorityPlugin
 {
     /**
-     * After plugin for getRate method to sort results by postcode specificity.
+     * After plugin for getRate method to filter results by postcode specificity.
+     *
+     * For each shipping method, only the rate with the most specific postcode
+     * pattern is kept. Less specific matches (like *) are filtered out.
      *
      * @param Matrixrate $subject
      * @param array $result
@@ -40,21 +43,34 @@ class PostcodePriorityPlugin
             return $result;
         }
 
-        usort($result, function ($a, $b) {
-            $specificityA = $this->calculatePostcodeSpecificity($a['dest_zip'] ?? '*');
-            $specificityB = $this->calculatePostcodeSpecificity($b['dest_zip'] ?? '*');
+        // Group rates by shipping method and keep only the most specific postcode match
+        $ratesByMethod = [];
 
-            if ($specificityA !== $specificityB) {
-                return $specificityB - $specificityA;
+        foreach ($result as $rate) {
+            $method = $rate['shipping_method'] ?? '';
+            $specificity = $this->calculatePostcodeSpecificity($rate['dest_zip'] ?? '*');
+
+            if (!isset($ratesByMethod[$method])) {
+                $ratesByMethod[$method] = [
+                    'rate' => $rate,
+                    'specificity' => $specificity
+                ];
+            } elseif ($specificity > $ratesByMethod[$method]['specificity']) {
+                // More specific postcode pattern found - replace
+                $ratesByMethod[$method] = [
+                    'rate' => $rate,
+                    'specificity' => $specificity
+                ];
             }
+        }
 
-            $conditionA = (float)($a['condition_from_value'] ?? 0);
-            $conditionB = (float)($b['condition_from_value'] ?? 0);
+        // Extract just the rates
+        $filteredRates = [];
+        foreach ($ratesByMethod as $data) {
+            $filteredRates[] = $data['rate'];
+        }
 
-            return $conditionB <=> $conditionA;
-        });
-
-        return $result;
+        return $filteredRates;
     }
 
     /**
