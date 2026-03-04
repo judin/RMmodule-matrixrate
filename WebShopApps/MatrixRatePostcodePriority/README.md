@@ -61,7 +61,7 @@ This extension filters the results so that only the **most specific matching pat
 
 ## Installation
 
-1. Copy the `MatrixRatePostcodePriority` folder to `app/code/WebShopApps/MatrixRatePostcodePriority/`
+1. Copy the `WebShopApps` folder to `app/code/`
 
 2. Enable the module and compile:
 ```bash
