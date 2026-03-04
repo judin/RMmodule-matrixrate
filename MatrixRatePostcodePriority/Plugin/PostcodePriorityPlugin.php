@@ -39,25 +39,40 @@ class PostcodePriorityPlugin
         RateRequest $request,
         bool $zipRangeSet = false
     ): array {
-        if (empty($result) || count($result) <= 1) {
+        // Specificity filtering only applies to LIKE pattern matching, not numeric zip ranges
+        if ($zipRangeSet || empty($result) || count($result) <= 1) {
             return $result;
         }
 
-        // Find the highest specificity among all rates
-        $highestSpecificity = 0;
+        // Group rates by shipping method so each method keeps its most specific match
+        $ratesByMethod = [];
         foreach ($result as $rate) {
-            $specificity = $this->calculatePostcodeSpecificity($rate['dest_zip'] ?? '*');
-            if ($specificity > $highestSpecificity) {
-                $highestSpecificity = $specificity;
-            }
+            $method = $rate['shipping_method'] ?? '__default__';
+            $ratesByMethod[$method][] = $rate;
         }
 
-        // Only keep rates with the highest specificity
         $filteredRates = [];
-        foreach ($result as $rate) {
-            $specificity = $this->calculatePostcodeSpecificity($rate['dest_zip'] ?? '*');
-            if ($specificity === $highestSpecificity) {
-                $filteredRates[] = $rate;
+        foreach ($ratesByMethod as $methodRates) {
+            if (count($methodRates) <= 1) {
+                $filteredRates[] = $methodRates[0];
+                continue;
+            }
+
+            // Find the highest specificity within this shipping method
+            $highestSpecificity = 0;
+            foreach ($methodRates as $rate) {
+                $specificity = $this->calculatePostcodeSpecificity($rate['dest_zip'] ?? '*');
+                if ($specificity > $highestSpecificity) {
+                    $highestSpecificity = $specificity;
+                }
+            }
+
+            // Keep only rates matching the highest specificity for this method
+            foreach ($methodRates as $rate) {
+                $specificity = $this->calculatePostcodeSpecificity($rate['dest_zip'] ?? '*');
+                if ($specificity === $highestSpecificity) {
+                    $filteredRates[] = $rate;
+                }
             }
         }
 
